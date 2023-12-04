@@ -203,6 +203,17 @@ SHOW1		equ	$1daf
 INCPT		equ	$1f63	;inc POINTL/POINTH
 ;
 ;=====================================================
+; KIM IEC save and load memory locations
+;
+IECSAL		equ $17F5
+IECSAH		equ $17F6
+IECEAL		equ $17F7
+IECEAH		equ $17F8
+IECFID		equ $17F9
+IECSAV		equ $F148
+IECLOD		equ $F000
+;
+;=====================================================
 ; I assume the RAM goes from 2000 to DFFF, so carve out
 ; a bit for use by the monitor.
 ;
@@ -549,6 +560,14 @@ commandTable	db	'?'
 		dw	returnKim
 		dw	kDesc
 ;
+		db	'Y'	;save memory to IEC
+		dw	saveIEC
+		dw	kDesc
+;
+		db	'Z'	;load memory from IEC
+		dw	loadIEC
+		dw	kDesc
+;
 		db	'!'	;do cold restart
 		dw	doCold
 		dw	bangDesc
@@ -579,6 +598,8 @@ oDesc		db	"O xxxx xxxx . Calculate branch offset",0
 pDesc		db	"P ........... Ping disk controller",0
 sDesc		db	"S xxxx xxxx . Save memory to file",0
 tDesc		db	"T ........... Type disk file",0
+yDesc		db  "Y xxxx-xxxx . Save memory to IEC",0
+zDesc		db 	"Z ........... Load memory from IEC",0
 bangDesc	db	"! ........... Do a cold start",0
 ;
 ;=====================================================
@@ -2047,6 +2068,56 @@ out3		ora	#'0'
 		include "mytb.asm"
 	endif
 		page
+		
+;
+;=====================================================
+; Handles the command to save a region of memory to
+; an IEC device.
+;
+lExit111		jmp	extKimLoop
+saveIEC		jsr	getAddrRange	;get range to dump
+			bcs	lExit111		;abort on error
+;
+; Get the file id to save to
+;
+		jsr	putsil
+		db	CR,LF
+		db	"Enter file ID ($01-$FE):",0
+		jsr	getHex
+		bcs	lExit111		;abort on error
+		sta	IECFID
+		
+		lda SAH
+		sta IECSAH
+		lda SAL
+		sta IECSAL
+		lda EAH
+		sta IECEAH
+		lda EAL
+		sta IECEAL
+		
+		jmp IECSAV
+		jmp	extKimLoop
+;
+;=====================================================
+; Handles the command to load a region of memory from
+; an IEC device.
+;
+loadIEC		jsr	getAddrRange	;get range to dump
+			bcs	lExit111		;abort on error
+;
+; Get the file id to save to
+;
+		jsr	putsil
+		db	CR,LF
+		db	"Enter file ID ($01-$FE):",0
+		jsr	getHex
+		bcs	lExit111		;abort on error
+		sta	IECFID
+		
+		jmp IECLOD
+		jmp	extKimLoop
+
 ;
 ;=====================================================
 ; These are the 6502 vectors.  On the Corsham

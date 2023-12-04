@@ -7,6 +7,7 @@
 ;
 ; Modified June, 2022 by Dave McMurtrie <dave@commodore.international>
 ; Modified 23. June 2022 by Netzherpes, Just to start Code at $A000 and compile with CC65
+; Modified 93. December 2023 by Zoggins, Moved code to $F000
 ; <webdoktor@netzherpes.de>
 
                        
