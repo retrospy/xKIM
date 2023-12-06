@@ -57,6 +57,9 @@
 ;		into subroutines and added vectors so
 ;		external programs can call them.
 ;		Fixed bugs in Edit mode.
+; 12/06/2023	Christopher 'Zoggins' Mallery
+;		v1.9
+;		Added IEC Save and Load commands
 ;
 ;*****************************************************
 ;
@@ -68,7 +71,7 @@ true		equ	~false
 ; Version number
 ;
 VERSION		equ	1
-REVISION	equ	8
+REVISION	equ	9
 BETA_VER	equ	0
 ;
 ; Options.  If RAM_BASED is set then the code is put
@@ -437,7 +440,11 @@ coldStart	lda	#COLD_FLAG_1	;indicate we've done cold
 		db	BETA_VER+'0'
 		db	' '
 	endif
-		db	"by Corsham Technologies, LLC"
+		db  "by RetroSpy Technologies"
+		db	CR,LF				
+		db  "retro-spy.com"
+		db	CR,LF
+		db	"Based on the work of Corsham Technologies, LLC"
 		db	CR,LF
 		db	"www.corshamtech.com"
 		db	CR,LF
