@@ -134,6 +134,11 @@ BYTESLINE	equ	16
 COLD_FLAG_1	equ	$19
 COLD_FLAG_2	equ	$62
 ;
+; Flag value to detect we need to restore interrupt vectors
+;
+VEC_FLAG_1 equ $AB
+VEC_FLAG_2 equ $AB
+;
 ;=====================================================
 ; This macro is used to verify that the current address
 ; meets a required value.  Used mostly to guarantee
@@ -321,6 +326,11 @@ ExtensionAddr	ds	2
 ;
 HighestAddress	ds	2
 		page
+;
+; VecFlag is used to determine if we need to restore
+; interrupt vector addresses
+;
+VecFlag	ds	2
 ;=====================================================
 ; Code starts at E000 and goes until FFFF, except for
 ; the 6502 vectors at the end of memory.
@@ -413,7 +423,17 @@ extKim		ldx	#$ff
 		lda	ColdFlag+1
 		cmp	#COLD_FLAG_2
 		bne	coldStart
-		jmp	extKimLoop	;it's a warm start
+		
+		lda	VecFlag
+		cmp	#VEC_FLAG_1
+		bne warmboot
+		lda	ColdFlag+1
+		cmp	#VEC_FLAG_2
+		bne	warmboot
+		
+		jsr loadvec
+		
+warmboot	jmp	extKimLoop	;it's a warm start
 ;
 ; Cold start
 ;
@@ -2162,6 +2182,7 @@ loadIEC
 
 savevec 
 		sty saveY
+		
 		ldy NMIL
 		sty saveNMIL
 		ldy NMIH
@@ -2174,7 +2195,15 @@ savevec
 		sty saveIRQL
 		ldy IRQH
 		sty saveIRQH
+		
+		ldy	#VEC_FLAG_1
+		sty	VecFlag
+		ldy	#VEC_FLAG_2
+		sty	VecFlag+1
+		
 		ldy saveY
+		
+		
 		
 		rts
 		
