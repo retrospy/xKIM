@@ -444,6 +444,7 @@ coldStart	lda	#COLD_FLAG_1	;indicate we've done cold
 		db	CR,LF				
 		db  "retro-spy.com"
 		db	CR,LF
+		db	CR,LF
 		db	"Based on the work of Corsham Technologies, LLC"
 		db	CR,LF
 		db	"www.corshamtech.com"
@@ -569,11 +570,11 @@ commandTable	db	'?'
 ;
 		db	'Y'	;save memory to IEC
 		dw	saveIEC
-		dw	kDesc
+		dw	yDesc
 ;
 		db	'Z'	;load memory from IEC
 		dw	loadIEC
-		dw	kDesc
+		dw	zDesc
 ;
 		db	'!'	;do cold restart
 		dw	doCold
