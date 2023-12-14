@@ -2111,46 +2111,11 @@ saveIEC		jsr	getAddrRange	;get range to dump
 		bcs	lExit111		;abort on error
 		sta	IECFID
 		
-		sty saveY
-		ldy NMIL
-		sty saveNMIL
-		ldy NMIH
-		sty saveNMIH
-		ldy RSTL
-		sty saveRSTL
-		ldy RSTH
-		sty saveRSTH
-		ldy IRQL
-		sty saveIRQL
-		ldy IRQH
-		sty saveIRQH
-		ldy saveY
+		jsr savevec
 		
-		lda #0
-		sta NMIL
-		sta RSTL
-		sta IRQL
-		lda #$E0
-		sta NMIH
-		sta RSTH
-		sta IRQH
+		jsr IECSAV
 		
-		jmp IECSAV
-		
-		sty saveY
-		ldy saveNMIL
-		sty NMIL
-		ldy saveNMIH
-		sty NMIH
-		ldy saveRSTL
-		sty RSTL
-		ldy saveRSTH
-		sty RSTH
-		ldy saveIRQL
-		sty IRQL
-		ldy saveIRQH
-		sty IRQH
-		ldy saveY
+		jsr loadvec
 		
 		jmp	extKimLoop
 ;
@@ -2169,6 +2134,15 @@ loadIEC
 		bcs	lExit1111		;abort on error
 		sta	IECFID
 		
+		jsr savevec
+		
+		jsr IECLOD
+
+		jsr loadvec
+		
+		jmp	extKimLoop
+
+savevec 
 		sty saveY
 		ldy NMIL
 		sty saveNMIL
@@ -2184,7 +2158,7 @@ loadIEC
 		sty saveIRQH
 		ldy saveY
 		
-		lda #0
+		lda #$00
 		sta NMIL
 		sta RSTL
 		sta IRQL
@@ -2193,8 +2167,9 @@ loadIEC
 		sta RSTH
 		sta IRQH
 		
-		jmp IECLOD
+		rts
 		
+loadvec
 		sty saveY
 		ldy saveNMIL
 		sty NMIL
@@ -2210,7 +2185,7 @@ loadIEC
 		sty IRQH
 		ldy saveY
 		
-		jmp	extKimLoop
+		rts
 
 ;
 ;=====================================================

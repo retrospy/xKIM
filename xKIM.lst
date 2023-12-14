@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2726 lines read, no errors in pass 1.
+2701 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -627,7 +627,7 @@ e1b4 : 70ee             		dw	saveIEC
 e1b6 : 4ae3             		dw	yDesc
                         ;
 e1b8 : 5a               		db	'Z'	;load memory from IEC
-e1b9 : 0eef             		dw	loadIEC
+e1b9 : aaee             		dw	loadIEC
 e1bb : 6be3             		dw	zDesc
                         ;
 e1bd : 21               		db	'!'	;do cold restart
@@ -2761,117 +2761,89 @@ ee93 : 20efea           		jsr	getHex
 ee96 : b0d5             		bcs	lExit111		;abort on error
 ee98 : 8df917           		sta	IECFID
                         		
-ee9b : 8c82df           		sty saveY
-ee9e : acfa17           		ldy NMIL
-eea1 : 8c83df           		sty saveNMIL
-eea4 : acfb17           		ldy NMIH
-eea7 : 8c84df           		sty saveNMIH
-eeaa : acfc17           		ldy RSTL
-eead : 8c85df           		sty saveRSTL
-eeb0 : acfd17           		ldy RSTH
-eeb3 : 8c86df           		sty saveRSTH
-eeb6 : acfe17           		ldy IRQL
-eeb9 : 8c87df           		sty saveIRQL
-eebc : acff17           		ldy IRQH
-eebf : 8c88df           		sty saveIRQH
-eec2 : ac82df           		ldy saveY
+ee9b : 20dcee           		jsr savevec
                         		
-eec5 : a900             		lda #0
-eec7 : 8dfa17           		sta NMIL
-eeca : 8dfc17           		sta RSTL
-eecd : 8dfe17           		sta IRQL
-eed0 : a9e0             		lda #$E0
-eed2 : 8dfb17           		sta NMIH
-eed5 : 8dfd17           		sta RSTH
-eed8 : 8dff17           		sta IRQH
+ee9e : 2048f1           		jsr IECSAV
                         		
-eedb : 4c48f1           		jmp IECSAV
+eea1 : 201def           		jsr loadvec
                         		
-eede : 8c82df           		sty saveY
-eee1 : ac83df           		ldy saveNMIL
-eee4 : 8cfa17           		sty NMIL
-eee7 : ac84df           		ldy saveNMIH
-eeea : 8cfb17           		sty NMIH
-eeed : ac85df           		ldy saveRSTL
-eef0 : 8cfc17           		sty RSTL
-eef3 : ac86df           		ldy saveRSTH
-eef6 : 8cfd17           		sty RSTH
-eef9 : ac87df           		ldy saveIRQL
-eefc : 8cfe17           		sty IRQL
-eeff : ac88df           		ldy saveIRQH
-ef02 : 8cff17           		sty IRQH
-ef05 : ac82df           		ldy saveY
-                        		
-ef08 : 4c2fe1           		jmp	extKimLoop
+eea4 : 4c2fe1           		jmp	extKimLoop
                         ;
-AS65 Assembler for R6502 [1.42].                                     Page   50
----------------------------------- xKIM.asm ----------------------------------
-
                         ;=====================================================
                         ; Handles the command to load a region of memory from
                         ; an IEC device.
                         ;
-ef0b : 4c2fe1           lExit1111		jmp	extKimLoop
-ef0e :                  loadIEC		
+eea7 : 4c2fe1           lExit1111		jmp	extKimLoop
+eeaa :                  loadIEC		
                         ; Get the file id to save to
                         ;		
-ef0e : 20c0ea           		jsr	putsil
-ef11 : 0d0a             		db	CR,LF
-ef13 : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
-ef2c : 20efea           		jsr	getHex
-ef2f : b0da             		bcs	lExit1111		;abort on error
-ef31 : 8df917           		sta	IECFID
+eeaa : 20c0ea           		jsr	putsil
+eead : 0d0a             		db	CR,LF
+eeaf : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
+eec8 : 20efea           		jsr	getHex
+eecb : b0da             		bcs	lExit1111		;abort on error
+eecd : 8df917           		sta	IECFID
                         		
-ef34 : 8c82df           		sty saveY
-ef37 : acfa17           		ldy NMIL
-ef3a : 8c83df           		sty saveNMIL
-ef3d : acfb17           		ldy NMIH
-ef40 : 8c84df           		sty saveNMIH
-ef43 : acfc17           		ldy RSTL
-ef46 : 8c85df           		sty saveRSTL
-ef49 : acfd17           		ldy RSTH
-ef4c : 8c86df           		sty saveRSTH
-ef4f : acfe17           		ldy IRQL
-ef52 : 8c87df           		sty saveIRQL
-ef55 : acff17           		ldy IRQH
-ef58 : 8c88df           		sty saveIRQH
-ef5b : ac82df           		ldy saveY
+eed0 : 20dcee           		jsr savevec
                         		
-ef5e : a900             		lda #0
-ef60 : 8dfa17           		sta NMIL
-ef63 : 8dfc17           		sta RSTL
-ef66 : 8dfe17           		sta IRQL
-ef69 : a9e0             		lda #$E0
-ef6b : 8dfb17           		sta NMIH
-ef6e : 8dfd17           		sta RSTH
-ef71 : 8dff17           		sta IRQH
+eed3 : 2000f0           		jsr IECLOD
+                        
+eed6 : 201def           		jsr loadvec
                         		
-ef74 : 4c00f0           		jmp IECLOD
+eed9 : 4c2fe1           		jmp	extKimLoop
+                        
+eedc :                  savevec 
+eedc : 8c82df           		sty saveY
+eedf : acfa17           		ldy NMIL
+eee2 : 8c83df           		sty saveNMIL
+eee5 : acfb17           		ldy NMIH
+eee8 : 8c84df           		sty saveNMIH
+eeeb : acfc17           		ldy RSTL
+eeee : 8c85df           		sty saveRSTL
+eef1 : acfd17           		ldy RSTH
+eef4 : 8c86df           		sty saveRSTH
+eef7 : acfe17           		ldy IRQL
+eefa : 8c87df           		sty saveIRQL
+AS65 Assembler for R6502 [1.42].                                     Page   50
+---------------------------------- xKIM.asm ----------------------------------
+
+eefd : acff17           		ldy IRQH
+ef00 : 8c88df           		sty saveIRQH
+ef03 : ac82df           		ldy saveY
                         		
-ef77 : 8c82df           		sty saveY
-ef7a : ac83df           		ldy saveNMIL
-ef7d : 8cfa17           		sty NMIL
-ef80 : ac84df           		ldy saveNMIH
-ef83 : 8cfb17           		sty NMIH
-ef86 : ac85df           		ldy saveRSTL
-ef89 : 8cfc17           		sty RSTL
-ef8c : ac86df           		ldy saveRSTH
-ef8f : 8cfd17           		sty RSTH
-ef92 : ac87df           		ldy saveIRQL
-ef95 : 8cfe17           		sty IRQL
-ef98 : ac88df           		ldy saveIRQH
-ef9b : 8cff17           		sty IRQH
-ef9e : ac82df           		ldy saveY
+ef06 : a900             		lda #$00
+ef08 : 8dfa17           		sta NMIL
+ef0b : 8dfc17           		sta RSTL
+ef0e : 8dfe17           		sta IRQL
+ef11 : a9e0             		lda #$E0
+ef13 : 8dfb17           		sta NMIH
+ef16 : 8dfd17           		sta RSTH
+ef19 : 8dff17           		sta IRQH
                         		
-efa1 : 4c2fe1           		jmp	extKimLoop
+ef1c : 60               		rts
+                        		
+ef1d :                  loadvec
+ef1d : 8c82df           		sty saveY
+ef20 : ac83df           		ldy saveNMIL
+ef23 : 8cfa17           		sty NMIL
+ef26 : ac84df           		ldy saveNMIH
+ef29 : 8cfb17           		sty NMIH
+ef2c : ac85df           		ldy saveRSTL
+ef2f : 8cfc17           		sty RSTL
+ef32 : ac86df           		ldy saveRSTH
+ef35 : 8cfd17           		sty RSTH
+ef38 : ac87df           		ldy saveIRQL
+ef3b : 8cfe17           		sty IRQL
+ef3e : ac88df           		ldy saveIRQH
+ef41 : 8cff17           		sty IRQH
+ef44 : ac82df           		ldy saveY
+                        		
+ef47 : 60               		rts
                         
                         ;
                         ;=====================================================
                         ; These are the 6502 vectors.  On the Corsham
                         ; Technologies RAM/ROM board the user can select
-AS65 Assembler for R6502 [1.42].                                     Page   51
----------------------------------- xKIM.asm ----------------------------------
-
                         ; whether or not to use these based on a switch
                         ; setting on the board.
                         ;
