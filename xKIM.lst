@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2739 lines read, no errors in pass 1.
+2737 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -456,7 +456,7 @@ e079 : d014             		bne	coldStart
 e07b : ad00e0           		lda	VecFlag
 e07e : c9ab             		cmp	#VEC_FLAG_1
 e080 : d00a             		bne warmboot
-e082 : adfbdf           		lda	ColdFlag+1
+e082 : ad01e0           		lda	VecFlag+1
 e085 : c9ab             		cmp	#VEC_FLAG_2
 e087 : d003             		bne	warmboot
                         		
@@ -2856,8 +2856,6 @@ ef47 : 8c01e0           		sty	VecFlag+1
                         		
 ef4a : ac82df           		ldy saveY
                         		
-                        		
-                        		
 ef4d : 60               		rts
                         		
 ef4e :                  loadvec
@@ -2889,11 +2887,11 @@ fffa =                  		org	$fffa
 fffa : 1c1c             NMI		dw	NMIT	;in KIM
 fffc : 221c             RESET		dw	RST	;in KIM
 fffe : 1f1c             IRQ		dw	IRQT	;in KIM
+                        ;
+                        		end
 AS65 Assembler for R6502 [1.42].                                     Page   51
 ---------------------------------- xKIM.asm ----------------------------------
 
-                        ;
-                        		end
                         
                         
 No errors in pass 2.

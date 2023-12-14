@@ -427,7 +427,7 @@ extKim		ldx	#$ff
 		lda	VecFlag
 		cmp	#VEC_FLAG_1
 		bne warmboot
-		lda	ColdFlag+1
+		lda	VecFlag+1
 		cmp	#VEC_FLAG_2
 		bne	warmboot
 		
@@ -2202,8 +2202,6 @@ savevec
 		sty	VecFlag+1
 		
 		ldy saveY
-		
-		
 		
 		rts
 		
