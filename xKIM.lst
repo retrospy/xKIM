@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2701 lines read, no errors in pass 1.
+2713 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -627,7 +627,7 @@ e1b4 : 70ee             		dw	saveIEC
 e1b6 : 4ae3             		dw	yDesc
                         ;
 e1b8 : 5a               		db	'Z'	;load memory from IEC
-e1b9 : aaee             		dw	loadIEC
+e1b9 : c0ee             		dw	loadIEC
 e1bb : 6be3             		dw	zDesc
                         ;
 e1bd : 21               		db	'!'	;do cold restart
@@ -2761,84 +2761,96 @@ ee93 : 20efea           		jsr	getHex
 ee96 : b0d5             		bcs	lExit111		;abort on error
 ee98 : 8df917           		sta	IECFID
                         		
-ee9b : 20dcee           		jsr savevec
+ee9b : 2008ef           		jsr savevec
                         		
-ee9e : 2048f1           		jsr IECSAV
+ee9e : a900             		lda #$00
+eea0 : 8dfa17           		sta NMIL
+eea3 : 8dfc17           		sta RSTL
+eea6 : 8dfe17           		sta IRQL
+eea9 : a9e0             		lda #$E0
+eeab : 8dfb17           		sta NMIH
+eeae : 8dfd17           		sta RSTH
+eeb1 : 8dff17           		sta IRQH
                         		
-eea1 : 201def           		jsr loadvec
+eeb4 : 2048f1           		jsr IECSAV
                         		
-eea4 : 4c2fe1           		jmp	extKimLoop
+eeb7 : 2033ef           		jsr loadvec
+                        		
+eeba : 4c2fe1           		jmp	extKimLoop
                         ;
                         ;=====================================================
                         ; Handles the command to load a region of memory from
                         ; an IEC device.
                         ;
-eea7 : 4c2fe1           lExit1111		jmp	extKimLoop
-eeaa :                  loadIEC		
+eebd : 4c2fe1           lExit1111		jmp	extKimLoop
+eec0 :                  loadIEC		
                         ; Get the file id to save to
                         ;		
-eeaa : 20c0ea           		jsr	putsil
-eead : 0d0a             		db	CR,LF
-eeaf : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
-eec8 : 20efea           		jsr	getHex
-eecb : b0da             		bcs	lExit1111		;abort on error
-eecd : 8df917           		sta	IECFID
+eec0 : 20c0ea           		jsr	putsil
+eec3 : 0d0a             		db	CR,LF
+eec5 : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
+eede : 20efea           		jsr	getHex
+eee1 : b0da             		bcs	lExit1111		;abort on error
+eee3 : 8df917           		sta	IECFID
                         		
-eed0 : 20dcee           		jsr savevec
+eee6 : 2008ef           		jsr savevec
                         		
-eed3 : 2000f0           		jsr IECLOD
-                        
-eed6 : 201def           		jsr loadvec
+eee9 : a9f7             		lda #$F7
+eeeb : 8dfa17           		sta NMIL
+eeee : 8dfc17           		sta RSTL
+eef1 : 8dfe17           		sta IRQL
+eef4 : a9ff             		lda #$FF
+eef6 : 8dfb17           		sta NMIH
+eef9 : 8dfd17           		sta RSTH
+eefc : 8dff17           		sta IRQH
                         		
-eed9 : 4c2fe1           		jmp	extKimLoop
-                        
-eedc :                  savevec 
-eedc : 8c82df           		sty saveY
-eedf : acfa17           		ldy NMIL
-eee2 : 8c83df           		sty saveNMIL
-eee5 : acfb17           		ldy NMIH
-eee8 : 8c84df           		sty saveNMIH
-eeeb : acfc17           		ldy RSTL
-eeee : 8c85df           		sty saveRSTL
-eef1 : acfd17           		ldy RSTH
-eef4 : 8c86df           		sty saveRSTH
-eef7 : acfe17           		ldy IRQL
-eefa : 8c87df           		sty saveIRQL
 AS65 Assembler for R6502 [1.42].                                     Page   50
 ---------------------------------- xKIM.asm ----------------------------------
 
-eefd : acff17           		ldy IRQH
-ef00 : 8c88df           		sty saveIRQH
-ef03 : ac82df           		ldy saveY
+eeff : 2000f0           		jsr IECLOD
+                        
+ef02 : 2033ef           lodret	jsr loadvec
                         		
-ef06 : a900             		lda #$00
-ef08 : 8dfa17           		sta NMIL
-ef0b : 8dfc17           		sta RSTL
-ef0e : 8dfe17           		sta IRQL
-ef11 : a9e0             		lda #$E0
-ef13 : 8dfb17           		sta NMIH
-ef16 : 8dfd17           		sta RSTH
-ef19 : 8dff17           		sta IRQH
+ef05 : 4c2fe1           		jmp	extKimLoop
+                        
+ef08 :                  savevec 
+ef08 : 8c82df           		sty saveY
+ef0b : acfa17           		ldy NMIL
+ef0e : 8c83df           		sty saveNMIL
+ef11 : acfb17           		ldy NMIH
+ef14 : 8c84df           		sty saveNMIH
+ef17 : acfc17           		ldy RSTL
+ef1a : 8c85df           		sty saveRSTL
+ef1d : acfd17           		ldy RSTH
+ef20 : 8c86df           		sty saveRSTH
+ef23 : acfe17           		ldy IRQL
+ef26 : 8c87df           		sty saveIRQL
+ef29 : acff17           		ldy IRQH
+ef2c : 8c88df           		sty saveIRQH
+ef2f : ac82df           		ldy saveY
                         		
-ef1c : 60               		rts
+ef32 : 60               		rts
                         		
-ef1d :                  loadvec
-ef1d : 8c82df           		sty saveY
-ef20 : ac83df           		ldy saveNMIL
-ef23 : 8cfa17           		sty NMIL
-ef26 : ac84df           		ldy saveNMIH
-ef29 : 8cfb17           		sty NMIH
-ef2c : ac85df           		ldy saveRSTL
-ef2f : 8cfc17           		sty RSTL
-ef32 : ac86df           		ldy saveRSTH
-ef35 : 8cfd17           		sty RSTH
-ef38 : ac87df           		ldy saveIRQL
-ef3b : 8cfe17           		sty IRQL
-ef3e : ac88df           		ldy saveIRQH
-ef41 : 8cff17           		sty IRQH
-ef44 : ac82df           		ldy saveY
+ef33 :                  loadvec
+ef33 : 8c82df           		sty saveY
+ef36 : ac83df           		ldy saveNMIL
+ef39 : 8cfa17           		sty NMIL
+ef3c : ac84df           		ldy saveNMIH
+ef3f : 8cfb17           		sty NMIH
+ef42 : ac85df           		ldy saveRSTL
+ef45 : 8cfc17           		sty RSTL
+ef48 : ac86df           		ldy saveRSTH
+ef4b : 8cfd17           		sty RSTH
+ef4e : ac87df           		ldy saveIRQL
+ef51 : 8cfe17           		sty IRQL
+ef54 : ac88df           		ldy saveIRQH
+ef57 : 8cff17           		sty IRQH
+ef5a : ac82df           		ldy saveY
                         		
-ef47 : 60               		rts
+ef5d : 60               		rts
+                        
+fff7 =                  		org $fff7
+fff7 : 4c02ef           		jmp lodret
                         
                         ;
                         ;=====================================================

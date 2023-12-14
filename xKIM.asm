@@ -2113,6 +2113,15 @@ saveIEC		jsr	getAddrRange	;get range to dump
 		
 		jsr savevec
 		
+		lda #$00
+		sta NMIL
+		sta RSTL
+		sta IRQL
+		lda #$E0
+		sta NMIH
+		sta RSTH
+		sta IRQH
+		
 		jsr IECSAV
 		
 		jsr loadvec
@@ -2136,9 +2145,18 @@ loadIEC
 		
 		jsr savevec
 		
+		lda #$F7
+		sta NMIL
+		sta RSTL
+		sta IRQL
+		lda #$FF
+		sta NMIH
+		sta RSTH
+		sta IRQH
+		
 		jsr IECLOD
 
-		jsr loadvec
+lodret	jsr loadvec
 		
 		jmp	extKimLoop
 
@@ -2157,15 +2175,6 @@ savevec
 		ldy IRQH
 		sty saveIRQH
 		ldy saveY
-		
-		lda #$00
-		sta NMIL
-		sta RSTL
-		sta IRQL
-		lda #$E0
-		sta NMIH
-		sta RSTH
-		sta IRQH
 		
 		rts
 		
@@ -2186,6 +2195,9 @@ loadvec
 		ldy saveY
 		
 		rts
+
+		org $fff7
+		jmp lodret
 
 ;
 ;=====================================================
