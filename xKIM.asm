@@ -402,7 +402,8 @@ extKim		ldx	#$ff
 ;
 ; Cold start
 ;
-coldStart	lda	#COLD_FLAG_1	;indicate we've done cold
+coldStart	cld	
+		lda	#COLD_FLAG_1	;indicate we've done cold
 		sta	ColdFlag
 		lda	#COLD_FLAG_2
 		sta	ColdFlag+1
