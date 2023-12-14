@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2640 lines read, no errors in pass 1.
+2637 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -2758,20 +2758,17 @@ eeb5 : 4c2ee1           		jmp	extKimLoop
                         ; Handles the command to load a region of memory from
                         ; an IEC device.
                         ;
-eeb8 : 204aeb           loadIEC		jsr	getAddrRange	;get range to dump
-eebb : b0af             			bcs	lExit111		;abort on error
-                        ;
+eeb8 :                  loadIEC		
                         ; Get the file id to save to
                         ;
-eebd : 20bfea           		jsr	putsil
-eec0 : 0d0a             		db	CR,LF
-eec2 : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
-eedb : 20eeea           		jsr	getHex
-eede : b08c             		bcs	lExit111		;abort on error
-eee0 : 8df917           		sta	IECFID
+eeb8 : 20bfea           		jsr	putsil
+eebb : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
+eed4 : 20eeea           		jsr	getHex
+eed7 : b093             		bcs	lExit111		;abort on error
+eed9 : 8df917           		sta	IECFID
                         		
-eee3 : 4c00f0           		jmp IECLOD
-eee6 : 4c2ee1           		jmp	extKimLoop
+eedc : 4c00f0           		jmp IECLOD
+eedf : 4c2ee1           		jmp	extKimLoop
                         
                         ;
                         ;=====================================================
@@ -2785,12 +2782,12 @@ fffa : 1c1c             NMI		dw	NMIT	;in KIM
 fffc : 221c             RESET		dw	RST	;in KIM
 fffe : 1f1c             IRQ		dw	IRQT	;in KIM
                         ;
-AS65 Assembler for R6502 [1.42].                                     Page   49
----------------------------------- xKIM.asm ----------------------------------
-
                         		end
                         
                         
+AS65 Assembler for R6502 [1.42].                                     Page   49
+---------------------------------- xKIM.asm ----------------------------------
+
 No errors in pass 2.
 Wrote binary from address $e000 through $ffff.
 Total size 8192 bytes.

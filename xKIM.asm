@@ -2111,13 +2111,10 @@ saveIEC		jsr	getAddrRange	;get range to dump
 ; Handles the command to load a region of memory from
 ; an IEC device.
 ;
-loadIEC		jsr	getAddrRange	;get range to dump
-			bcs	lExit111		;abort on error
-;
+loadIEC		
 ; Get the file id to save to
 ;
 		jsr	putsil
-		db	CR,LF
 		db	"Enter file ID ($01-$FE):",0
 		jsr	getHex
 		bcs	lExit111		;abort on error
