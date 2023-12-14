@@ -240,6 +240,14 @@ LowestAddress	equ	*
 saveA		ds	1
 saveX		ds	1
 saveY		ds	1
+
+saveNMIL	ds	1
+saveNMIH	ds	1
+saveRSTL	ds	1
+saveRSTH	ds	1
+saveIRQL	ds	1
+saveIRQH	ds	1
+
 ;
 ; Pointer to the subroutine that gets the next input
 ; character.  Used for doing disk/console input.
@@ -2095,7 +2103,29 @@ saveIEC		jsr	getAddrRange	;get range to dump
 			bcs	lExit111		;abort on error
 ;
 ; Get the file id to save to
-;
+;		
+		jsr	putsil
+		db	CR,LF
+		db	"Enter file ID ($01-$FE):",0
+		jsr	getHex
+		bcs	lExit111		;abort on error
+		sta	IECFID
+		
+		sty saveY
+		ldy NMIL
+		sty saveNMIL
+		ldy NMIH
+		sty saveNMIH
+		ldy RSTL
+		sty saveRSTL
+		ldy RSTH
+		sty saveRSTH
+		ldy IRQL
+		sty saveIRQL
+		ldy IRQH
+		sty saveIRQH
+		ldy saveY
+		
 		lda #0
 		sta NMIL
 		sta RSTL
@@ -2105,23 +2135,23 @@ saveIEC		jsr	getAddrRange	;get range to dump
 		sta RSTH
 		sta IRQH
 		
-		jsr	putsil
-		db	CR,LF
-		db	"Enter file ID ($01-$FE):",0
-		jsr	getHex
-		bcs	lExit111		;abort on error
-		sta	IECFID
-		
-		lda SAH
-		sta IECSAH
-		lda SAL
-		sta IECSAL
-		lda EAH
-		sta IECEAH
-		lda EAL
-		sta IECEAL
-		
 		jmp IECSAV
+		
+		sty saveY
+		ldy saveNMIL
+		sty NMIL
+		ldy saveNMIH
+		sty NMIH
+		ldy saveRSTL
+		sty RSTL
+		ldy saveRSTH
+		sty RSTH
+		ldy saveIRQL
+		sty IRQL
+		ldy saveIRQH
+		sty IRQH
+		ldy saveY
+		
 		jmp	extKimLoop
 ;
 ;=====================================================
@@ -2131,7 +2161,29 @@ saveIEC		jsr	getAddrRange	;get range to dump
 lExit1111		jmp	extKimLoop
 loadIEC		
 ; Get the file id to save to
-;
+;		
+		jsr	putsil
+		db	CR,LF
+		db	"Enter file ID ($01-$FE):",0
+		jsr	getHex
+		bcs	lExit1111		;abort on error
+		sta	IECFID
+		
+		sty saveY
+		ldy NMIL
+		sty saveNMIL
+		ldy NMIH
+		sty saveNMIH
+		ldy RSTL
+		sty saveRSTL
+		ldy RSTH
+		sty saveRSTH
+		ldy IRQL
+		sty saveIRQL
+		ldy IRQH
+		sty saveIRQH
+		ldy saveY
+		
 		lda #0
 		sta NMIL
 		sta RSTL
@@ -2141,13 +2193,23 @@ loadIEC
 		sta RSTH
 		sta IRQH
 		
-		jsr	putsil
-		db	"Enter file ID ($01-$FE):",0
-		jsr	getHex
-		bcs	lExit1111		;abort on error
-		sta	IECFID
-		
 		jmp IECLOD
+		
+		sty saveY
+		ldy saveNMIL
+		sty NMIL
+		ldy saveNMIH
+		sty NMIH
+		ldy saveRSTL
+		sty RSTL
+		ldy saveRSTH
+		sty RSTH
+		ldy saveIRQL
+		sty IRQL
+		ldy saveIRQH
+		sty IRQH
+		ldy saveY
+		
 		jmp	extKimLoop
 
 ;

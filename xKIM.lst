@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2664 lines read, no errors in pass 1.
+2726 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -253,40 +253,48 @@ df80 =                  LowestAddress	equ	*
 df80 =                  saveA		ds	1
 df81 =                  saveX		ds	1
 df82 =                  saveY		ds	1
+                        
+df83 =                  saveNMIL	ds	1
+df84 =                  saveNMIH	ds	1
+df85 =                  saveRSTL	ds	1
+df86 =                  saveRSTH	ds	1
+AS65 Assembler for R6502 [1.42].                                     Page    5
+---------------------------------- xKIM.asm ----------------------------------
+
+df87 =                  saveIRQL	ds	1
+df88 =                  saveIRQH	ds	1
+                        
                         ;
                         ; Pointer to the subroutine that gets the next input
                         ; character.  Used for doing disk/console input.
                         ;
-df83 =                  inputVector	ds	2
-AS65 Assembler for R6502 [1.42].                                     Page    5
----------------------------------- xKIM.asm ----------------------------------
-
+df89 =                  inputVector	ds	2
                         ;
                         ; Same thing for output.
                         ;
-df85 =                  outputVector	ds	2
+df8b =                  outputVector	ds	2
                         ;
-df87 =                  filename	ds	FILENAME_SIZE+1
-df94 =                  buffer		ds	BUFFER_SIZE
-dfd4 =                  diskBufOffset	ds	1
-dfd5 =                  diskBufLength	ds	1
+df8d =                  filename	ds	FILENAME_SIZE+1
+df9a =                  buffer		ds	BUFFER_SIZE
+dfda =                  diskBufOffset	ds	1
+dfdb =                  diskBufLength	ds	1
                         ;
-dfd6 =                  Temp16L		ds	1
-dfd7 =                  Temp16H		ds	1
+dfdc =                  Temp16L		ds	1
+dfdd =                  Temp16H		ds	1
 df81 =                  byteCount	equ	saveX
                         ;
                         ; The clock functions need some storage, but just
                         ; overlay the names onto the buffer.
                         ;
-df94 =                  month		equ	buffer
-df95 =                  day		equ	month+1
-df96 =                  year_high	equ	day+1
-df97 =                  year_low	equ	year_high+1
-df98 =                  hour		equ	year_low+1
-df99 =                  minute		equ	hour+1
-df9a =                  second		equ	minute+1
-df9b =                  day_of_week	equ	second+1
-df9c =                  clock_end	equ	day_of_week+1
+df9a =                  month		equ	buffer
+df9b =                  day		equ	month+1
+df9c =                  year_high	equ	day+1
+df9d =                  year_low	equ	year_high+1
+df9e =                  hour		equ	year_low+1
+df9f =                  minute		equ	hour+1
+dfa0 =                  second		equ	minute+1
+dfa1 =                  day_of_week	equ	second+1
+dfa2 =                  clock_end	equ	day_of_week+1
                         ;
                         ; The next group of memory are public and can be
                         ; used by user programs, so don't modify where any
@@ -315,6 +323,9 @@ dffa =                  ColdFlag	ds	2
                         ; Address of a command table for user-created
                         ; extensions to the monitor.
                         ;
+AS65 Assembler for R6502 [1.42].                                     Page    6
+---------------------------------- xKIM.asm ----------------------------------
+
 dffc =                  ExtensionAddr	ds	2
                         ;
                         ; This is the higest location in RAM usable by user
@@ -323,9 +334,6 @@ dffc =                  ExtensionAddr	ds	2
                         ; okay to load before the address and then adjust
                         ; this down to keep others from stomping on your
                         ; extention.
-AS65 Assembler for R6502 [1.42].                                     Page    6
----------------------------------- xKIM.asm ----------------------------------
-
                         ;
                         ; If your program modifies this value, it needs to
                         ; set it back before terminating.
@@ -619,7 +627,7 @@ e1b4 : 70ee             		dw	saveIEC
 e1b6 : 4ae3             		dw	yDesc
                         ;
 e1b8 : 5a               		db	'Z'	;load memory from IEC
-e1b9 : d2ee             		dw	loadIEC
+e1b9 : 0eef             		dw	loadIEC
 e1bb : 6be3             		dw	zDesc
                         ;
 e1bd : 21               		db	'!'	;do cold restart
@@ -1098,14 +1106,14 @@ e672 : 456e7465722066.. 		db	"Enter filename, or Enter to "
 e68e : 6c6f6164206672.. 		db	"load from console: ",0
                         ;
 e6a2 : 208eeb           		jsr	getFileName	;get filename
-e6a5 : ad87df           		lda	filename	;null?
+e6a5 : ad8ddf           		lda	filename	;null?
 e6a8 : d006             		bne	loaddiskfile
 e6aa : 20f8e6           		jsr	loadHexConsole	;load from console
 e6ad : 4cbce6           		jmp	loadCheckAuto	;check auto-run
                         ;
                         ; Open the file
                         ;
-e6b0 : a087             loaddiskfile	ldy	#filename&$ff
+e6b0 : a08d             loaddiskfile	ldy	#filename&$ff
 e6b2 : a2df             		ldx	#filename/256
 e6b4 : a9ff             		lda	#$ff
 e6b6 : 8df917           		sta	ID		;print dots
@@ -1322,13 +1330,13 @@ e83f : 208eeb           		jsr	getFileName	;get filename
 AS65 Assembler for R6502 [1.42].                                     Page   23
 ---------------------------------- xKIM.asm ----------------------------------
 
-e842 : ad87df           		lda	filename	;null?
+e842 : ad8ddf           		lda	filename	;null?
 e845 : f012             		beq	saveHexConsole	;dump to console
                         ;
                         ; They selected a file, so try to open it.
                         ;
 e847 : a2df             		ldx	#filename>>8
-e849 : a087             		ldy	#filename&$ff
+e849 : a08d             		ldy	#filename&$ff
 e84b : 2068ed           		jsr	DiskOpenWrite	;attempt to open file
 e84e : 9003             		bcc	sopenok		;branch if opened ok
 e850 : 4cd6e6           		jmp	openfail
@@ -1346,19 +1354,19 @@ e859 : 2030ec           saveHexConsole	jsr	setOutputConsole
 e85c : 38               savehex2	sec
 e85d : adf717           		lda	EAL
 e860 : edf517           		sbc	SAL
-e863 : 8dd6df           		sta	Temp16L
+e863 : 8ddcdf           		sta	Temp16L
 e866 : adf817           		lda	EAH
 e869 : edf617           		sbc	SAH
-e86c : 8dd7df           		sta	Temp16H
+e86c : 8ddddf           		sta	Temp16H
 e86f : 9042             		bcc	SDone	;start > end
 e871 : 0900             		ora	#0
 e873 : 303e             		bmi	SDone	;more than 32K seems wrong
                         ;
                         ; Add one to the count
                         ;
-e875 : eed6df           		inc	Temp16L
+e875 : eedcdf           		inc	Temp16L
 e878 : d003             		bne	slab1
-e87a : eed7df           		inc	Temp16H
+e87a : eedddf           		inc	Temp16H
                         ;
                         ; Move pointer to zero page
                         ;
@@ -1370,9 +1378,9 @@ e885 : 85fb             		sta	POINTH
                         ; Top of each loop.  Start by seeing if there are any 
                         ; left to dump.
                         ;
-e887 : add7df           Sloop1		lda	Temp16H
+e887 : addddf           Sloop1		lda	Temp16H
 e88a : d02a             		bne	Sgo	;more to do
-e88c : add6df           		lda	Temp16L
+e88c : addcdf           		lda	Temp16L
 e88f : d025             		bne	Sgo	;more to do
                         ;
                         ; At end of the region, so output an end record.  This
@@ -1396,7 +1404,7 @@ e8a8 : 2004ec           		jsr	HexToOutput
                         ;
                         ; If output to file, flush and close the file.
                         ;
-e8ab : ad87df           		lda	filename
+e8ab : ad8ddf           		lda	filename
 e8ae : f003             		beq	SDone		;it's going to console
 e8b0 : 2021ec           		jsr	CloseOutFile
 e8b3 : 4c2fe1           SDone		jmp	extKimLoop	;back to the monitor
@@ -1404,9 +1412,9 @@ e8b3 : 4c2fe1           SDone		jmp	extKimLoop	;back to the monitor
                         ; This dumps the next line.  See how many bytes are le
                         ; and if more than BYTESLINE, then just do BYTESLINE.
                         ;
-e8b6 : add7df           Sgo		lda	Temp16H
+e8b6 : addddf           Sgo		lda	Temp16H
 e8b9 : d007             		bne	Sdef	;do default number of bytes
-e8bb : add6df           		lda	Temp16L
+e8bb : addcdf           		lda	Temp16L
 e8be : c910             		cmp	#BYTESLINE
 e8c0 : 9002             		bcc	Scnt	;more than max per line
 e8c2 : a910             Sdef		lda	#BYTESLINE
@@ -1463,19 +1471,19 @@ e911 : 201eec           		jsr	redirectedOutch
                         ;
                         ; If saving to disk, output a dot to indicate progress
                         ;
-e914 : ad87df           		lda	filename
+e914 : ad8ddf           		lda	filename
 e917 : f005             		beq	shf2
                         ;
 e919 : a92e             		lda	#'.'
 e91b : 20a01e           		jsr	OUTCH	;goes to console
                         ;
 e91e : 38               shf2		sec
-e91f : add6df           		lda	Temp16L
+e91f : addcdf           		lda	Temp16L
 e922 : edf917           		sbc	ID
-e925 : 8dd6df           		sta	Temp16L
-e928 : add7df           		lda	Temp16H
+e925 : 8ddcdf           		sta	Temp16L
+e928 : addddf           		lda	Temp16H
 e92b : e900             		sbc	#0
-e92d : 8dd7df           		sta	Temp16H
+e92d : 8ddddf           		sta	Temp16H
                         ;
 e930 : 4c87e8           		jmp	Sloop1
                         ;
@@ -1540,7 +1548,7 @@ e98d : 2001ed           		jsr	DiskDir
                         ; Get/Display each entry
                         ;
 e990 : a2df             doDiskDirLoop   ldx	#filename/256	;pointer to buffer
-e992 : a087             		ldy	#filename&$ff
+e992 : a08d             		ldy	#filename&$ff
 e994 : 86f9             		stx	INH		;save for puts
 e996 : 84f8             		sty	INL
 e998 : 200bed           		jsr	DiskDirNext	;get next entry
@@ -1556,7 +1564,7 @@ e9a6 : 4c90e9           		jmp	doDiskDirLoop	;do next entry
 e9a9 : 20c0ea           typeFile	jsr	putsil
 e9ac : 202d20456e7465.. 		db	" - Enter filename: ",0
 e9c0 : 208eeb           		jsr	getFileName
-e9c3 : a087             		ldy	#filename&$ff
+e9c3 : a08d             		ldy	#filename&$ff
 e9c5 : a2df             		ldx	#filename/256
                         ;		jsr	xParInit
 e9c7 : 203ced           		jsr	DiskOpenRead
@@ -1901,7 +1909,7 @@ eb97 : c908             		cmp	#BS	;backspace?
 eb99 : f00a             		beq	getFnDel
 eb9b : e00c             		cpx	#FILENAME_SIZE	;check size
 eb9d : f0f1             		beq	getFilename1	;at length limit
-eb9f : 9d87df           		sta	filename,x	;else save it
+eb9f : 9d8ddf           		sta	filename,x	;else save it
 eba2 : e8               		inx
 eba3 : d0eb             		bne	getFilename1
                         ;
@@ -1910,7 +1918,7 @@ eba6 : 10e8             		bpl	getFilename1
 eba8 : e8               		inx		;can't go past start
 eba9 : f0e5             		beq	getFilename1
 ebab : a900             getFnDone       lda	#0	;terminate line
-ebad : 9d87df           		sta	filename,x
+ebad : 9d8ddf           		sta	filename,x
 ebb0 : 202f1e           		jsr	CRLF
 ebb3 : 60               		rts
                         ;
@@ -1919,8 +1927,8 @@ ebb3 : 60               		rts
                         ; there are no more bytes left, this returns C set.
                         ; Else, C is clear and A contains the character.
                         ;
-ebb4 : aed4df           getNextFileByte ldx 	diskBufOffset
-ebb7 : ecd5df           		cpx	diskBufLength
+ebb4 : aedadf           getNextFileByte ldx 	diskBufOffset
+ebb7 : ecdbdf           		cpx	diskBufLength
 ebba : d014             		bne	hasdata		;branch if still data
                         ;
                         ; There is no data left in the buffer, so read a
@@ -1928,26 +1936,26 @@ ebba : d014             		bne	hasdata		;branch if still data
                         ;
 ebbc : a940             		lda	#BUFFER_SIZE
 ebbe : a2df             		ldx	#buffer>>8
-ebc0 : a094             		ldy	#buffer&$ff
+ebc0 : a09a             		ldy	#buffer&$ff
 ebc2 : 206ded           		jsr	DiskRead
 ebc5 : b012             		bcs	getNextEof
                         ;
                         ; A contains the number of bytes actually read.
                         ;
-ebc7 : 8dd5df           		sta	diskBufLength	;save length
+ebc7 : 8ddbdf           		sta	diskBufLength	;save length
 ebca : c900             		cmp	#0		;shouldn't happen
 ebcc : f00b             		beq	getNextEof
                         ;
 ebce : a200             		ldx	#0
-ebd0 : bd94df           hasdata		lda	buffer,x
+ebd0 : bd9adf           hasdata		lda	buffer,x
 ebd3 : e8               		inx
-ebd4 : 8ed4df           		stx	diskBufOffset
+ebd4 : 8edadf           		stx	diskBufOffset
 ebd7 : 18               		clc
 ebd8 : 60               		rts
                         ;
 ebd9 : a900             getNextEof	lda	#0
-ebdb : 8dd4df           		sta	diskBufOffset
-ebde : 8dd5df           		sta	diskBufLength
+ebdb : 8ddadf           		sta	diskBufOffset
+ebde : 8ddbdf           		sta	diskBufLength
 ebe1 : 38               		sec
 ebe2 : 60               		rts
                         		page
@@ -1960,16 +1968,16 @@ ebe2 : 60               		rts
                         ; It simply does a jump through the input vector
                         ; pointer to get the next input character.
                         ;
-ebe3 : 6c83df           redirectedGetch	jmp	(inputVector)
+ebe3 : 6c89df           redirectedGetch	jmp	(inputVector)
                         ;
                         ;=====================================================
                         ; Set up the input vector to point to the normal
                         ; console input subroutine.
                         ;
 ebe6 : a95a             setInputConsole	lda	#GETCH&$ff
-ebe8 : 8d83df           		sta     inputVector
+ebe8 : 8d89df           		sta     inputVector
 ebeb : a91e             		lda	#GETCH/256
-ebed : 8d84df           		sta	inputVector+1
+ebed : 8d8adf           		sta	inputVector+1
 ebf0 : 60               		rts
                         ;
                         ;=====================================================
@@ -1977,16 +1985,16 @@ ebf0 : 60               		rts
                         ; subroutine.
                         ;
 ebf1 : a9b4             setInputFile    lda	#getNextFileByte&$ff
-ebf3 : 8d83df           		sta     inputVector
+ebf3 : 8d89df           		sta     inputVector
 ebf6 : a9eb             		lda	#getNextFileByte/256
-ebf8 : 8d84df           		sta	inputVector+1
+ebf8 : 8d8adf           		sta	inputVector+1
                         ;
                         ; Clear counts and offsets so the next read will
                         ; cause the file to be read.
                         ;
 ebfb : a900             		lda	#0
-ebfd : 8dd4df           		sta	diskBufOffset
-ec00 : 8dd5df           		sta	diskBufLength
+ebfd : 8ddadf           		sta	diskBufOffset
+ec00 : 8ddbdf           		sta	diskBufLength
 ec03 : 60               		rts
                         ;
                         ;=====================================================
@@ -2021,16 +2029,16 @@ ec1c : 6930             hexta1		adc	#'0'	;then fall into...
 
                         ; device.
                         ;
-ec1e : 6c85df           redirectedOutch	jmp	(outputVector)
+ec1e : 6c8bdf           redirectedOutch	jmp	(outputVector)
                         ;
                         ;=====================================================
                         ; This flushes any data remaining in the disk buffer
                         ; and then closes the file.
                         ;
-ec21 : add4df           CloseOutFile	lda	diskBufOffset
+ec21 : addadf           CloseOutFile	lda	diskBufOffset
 ec24 : f007             		beq	closeonly
 ec26 : a2df             		ldx	#buffer>>8
-ec28 : a094             		ldy	#buffer&$ff
+ec28 : a09a             		ldy	#buffer&$ff
 ec2a : 209fed           		jsr	DiskWrite
                         ;
 ec2d : 20d6ed           closeonly	jsr	DiskClose
@@ -2043,9 +2051,9 @@ ec2d : 20d6ed           closeonly	jsr	DiskClose
                         ;
 ec30 :                  setOutputConsole
 ec30 : a9a0             		lda	#OUTCH&$ff
-ec32 : 8d85df           		sta     outputVector
+ec32 : 8d8bdf           		sta     outputVector
 ec35 : a91e             		lda	#OUTCH/256
-ec37 : 8d86df           		sta	outputVector+1
+ec37 : 8d8cdf           		sta	outputVector+1
 ec3a : 60               		rts
                         ;
                         ;=====================================================
@@ -2053,22 +2061,22 @@ ec3a : 60               		rts
                         ; subroutine.
                         ;
 ec3b : a94b             setOutputFile    lda	#putNextFileByte&$ff
-ec3d : 8d85df           		sta     outputVector
+ec3d : 8d8bdf           		sta     outputVector
 ec40 : a9ec             		lda	#putNextFileByte/256
-ec42 : 8d86df           		sta	outputVector+1
+ec42 : 8d8cdf           		sta	outputVector+1
                         ;
                         ; Clear counts and offsets so the next read will
                         ; cause the file to be read.
                         ;
 ec45 : a900             		lda	#0
-ec47 : 8dd4df           		sta	diskBufOffset
+ec47 : 8ddadf           		sta	diskBufOffset
 ec4a : 60               		rts
                         ;
                         ;=====================================================
                         ; Add the byte in A to the output buffer.  If the
                         ; buffer is full, flush it to disk.
                         ;
-ec4b : aed4df           putNextFileByte	ldx	diskBufOffset
+ec4b : aedadf           putNextFileByte	ldx	diskBufOffset
 ec4e : e040             		cpx	#BUFFER_SIZE	;buffer full?
 ec50 : d00d             		bne	pNFB		;no
                         ;
@@ -2077,7 +2085,7 @@ ec50 : d00d             		bne	pNFB		;no
 ec52 : 48               		pha			;save byte
 ec53 : a940             		lda	#BUFFER_SIZE
 ec55 : a2df             		ldx	#buffer>>8
-ec57 : a094             		ldy	#buffer&$ff
+ec57 : a09a             		ldy	#buffer&$ff
 ec59 : 209fed           		jsr	DiskWrite
                         ;
 ec5c : a200             		ldx	#0		;reset index
@@ -2085,9 +2093,9 @@ ec5c : a200             		ldx	#0		;reset index
 ---------------------------------- xKIM.asm ----------------------------------
 
 ec5e : 68               		pla
-ec5f : 9d94df           pNFB		sta	buffer,x
+ec5f : 9d9adf           pNFB		sta	buffer,x
 ec62 : e8               		inx
-ec63 : 8ed4df           		stx	diskBufOffset
+ec63 : 8edadf           		stx	diskBufOffset
 ec66 : 60               		rts
                         ;
                         		include	"pario.asm"
@@ -2648,7 +2656,7 @@ ede9 : a200             		ldx	#0
 edeb : 8e81df           clockread	stx	saveX
 edee : 20caec           		jsr	xParReadByte
 edf1 : ae81df           		ldx	saveX
-edf4 : 9d94df           		sta	month,x
+edf4 : 9d9adf           		sta	month,x
 edf7 : e8               		inx
 edf8 : e008             		cpx	#clock_end-month
 edfa : d0ef             		bne	clockread
@@ -2666,18 +2674,18 @@ edff : 20c0ea           		jsr	putsil
 ee02 : 0d0a             		db	CR,LF
 ee04 : 446174653a2000   		db	"Date: ",0
                         ;
-ee0b : ad94df           		lda	month
+ee0b : ad9adf           		lda	month
 ee0e : 2054ee           		jsr	outdec
 ee11 : a92f             		lda	#'/'
 ee13 : 20a01e           		jsr	OUTCH
-ee16 : ad95df           		lda	day
+ee16 : ad9bdf           		lda	day
 ee19 : 2054ee           		jsr	outdec
                         ;
                         ; Always force the high part of the year to "/20"
                         ;
 ee1c : 20c0ea           		jsr	putsil
 ee1f : 2f323000         		db	"/20",0
-ee23 : ad97df           		lda	year_low
+ee23 : ad9ddf           		lda	year_low
 ee26 : 2054ee           		jsr	outdec
                         ;
                         ; Space over, then do the time
@@ -2688,15 +2696,15 @@ ee26 : 2054ee           		jsr	outdec
 ee29 : 20c0ea           		jsr	putsil
 ee2c : 2c2000           		db	", ",0
                         ;
-ee2f : ad98df           		lda	hour
+ee2f : ad9edf           		lda	hour
 ee32 : 2054ee           		jsr	outdec
 ee35 : a93a             		lda	#':'
 ee37 : 20a01e           		jsr	OUTCH
-ee3a : ad99df           		lda	minute
+ee3a : ad9fdf           		lda	minute
 ee3d : 2054ee           		jsr	outdec
 ee40 : a93a             		lda	#':'
 ee42 : 20a01e           		jsr	OUTCH
-ee45 : ad9adf           		lda	second
+ee45 : ada0df           		lda	second
 ee48 : 2054ee           		jsr	outdec
                         ;
 ee4b : 20c0ea           		jsr	putsil
@@ -2745,68 +2753,125 @@ ee70 : 204beb           saveIEC		jsr	getAddrRange	;get range to dump
 ee73 : b0f8             			bcs	lExit111		;abort on error
                         ;
                         ; Get the file id to save to
+                        ;		
+ee75 : 20c0ea           		jsr	putsil
+ee78 : 0d0a             		db	CR,LF
+ee7a : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
+ee93 : 20efea           		jsr	getHex
+ee96 : b0d5             		bcs	lExit111		;abort on error
+ee98 : 8df917           		sta	IECFID
+                        		
+ee9b : 8c82df           		sty saveY
+ee9e : acfa17           		ldy NMIL
+eea1 : 8c83df           		sty saveNMIL
+eea4 : acfb17           		ldy NMIH
+eea7 : 8c84df           		sty saveNMIH
+eeaa : acfc17           		ldy RSTL
+eead : 8c85df           		sty saveRSTL
+eeb0 : acfd17           		ldy RSTH
+eeb3 : 8c86df           		sty saveRSTH
+eeb6 : acfe17           		ldy IRQL
+eeb9 : 8c87df           		sty saveIRQL
+eebc : acff17           		ldy IRQH
+eebf : 8c88df           		sty saveIRQH
+eec2 : ac82df           		ldy saveY
+                        		
+eec5 : a900             		lda #0
+eec7 : 8dfa17           		sta NMIL
+eeca : 8dfc17           		sta RSTL
+eecd : 8dfe17           		sta IRQL
+eed0 : a9e0             		lda #$E0
+eed2 : 8dfb17           		sta NMIH
+eed5 : 8dfd17           		sta RSTH
+eed8 : 8dff17           		sta IRQH
+                        		
+eedb : 4c48f1           		jmp IECSAV
+                        		
+eede : 8c82df           		sty saveY
+eee1 : ac83df           		ldy saveNMIL
+eee4 : 8cfa17           		sty NMIL
+eee7 : ac84df           		ldy saveNMIH
+eeea : 8cfb17           		sty NMIH
+eeed : ac85df           		ldy saveRSTL
+eef0 : 8cfc17           		sty RSTL
+eef3 : ac86df           		ldy saveRSTH
+eef6 : 8cfd17           		sty RSTH
+eef9 : ac87df           		ldy saveIRQL
+eefc : 8cfe17           		sty IRQL
+eeff : ac88df           		ldy saveIRQH
+ef02 : 8cff17           		sty IRQH
+ef05 : ac82df           		ldy saveY
+                        		
+ef08 : 4c2fe1           		jmp	extKimLoop
                         ;
-ee75 : a900             		lda #0
-ee77 : 8dfa17           		sta NMIL
-ee7a : 8dfc17           		sta RSTL
-ee7d : 8dfe17           		sta IRQL
-ee80 : a9e0             		lda #$E0
-ee82 : 8dfb17           		sta NMIH
-ee85 : 8dfd17           		sta RSTH
-ee88 : 8dff17           		sta IRQH
-                        		
-ee8b : 20c0ea           		jsr	putsil
-ee8e : 0d0a             		db	CR,LF
-ee90 : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
-eea9 : 20efea           		jsr	getHex
-eeac : b0bf             		bcs	lExit111		;abort on error
-eeae : 8df917           		sta	IECFID
-                        		
-eeb1 : adf617           		lda SAH
-eeb4 : 8df617           		sta IECSAH
-eeb7 : adf517           		lda SAL
-eeba : 8df517           		sta IECSAL
-eebd : adf817           		lda EAH
-eec0 : 8df817           		sta IECEAH
-eec3 : adf717           		lda EAL
-eec6 : 8df717           		sta IECEAL
-                        		
-eec9 : 4c48f1           		jmp IECSAV
-eecc : 4c2fe1           		jmp	extKimLoop
-                        ;
+AS65 Assembler for R6502 [1.42].                                     Page   50
+---------------------------------- xKIM.asm ----------------------------------
+
                         ;=====================================================
                         ; Handles the command to load a region of memory from
                         ; an IEC device.
                         ;
-eecf : 4c2fe1           lExit1111		jmp	extKimLoop
-eed2 :                  loadIEC		
+ef0b : 4c2fe1           lExit1111		jmp	extKimLoop
+ef0e :                  loadIEC		
                         ; Get the file id to save to
-                        ;
-eed2 : a900             		lda #0
-eed4 : 8dfa17           		sta NMIL
-eed7 : 8dfc17           		sta RSTL
-eeda : 8dfe17           		sta IRQL
-eedd : a9e0             		lda #$E0
-eedf : 8dfb17           		sta NMIH
-eee2 : 8dfd17           		sta RSTH
-eee5 : 8dff17           		sta IRQH
+                        ;		
+ef0e : 20c0ea           		jsr	putsil
+ef11 : 0d0a             		db	CR,LF
+ef13 : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
+ef2c : 20efea           		jsr	getHex
+ef2f : b0da             		bcs	lExit1111		;abort on error
+ef31 : 8df917           		sta	IECFID
                         		
-eee8 : 20c0ea           		jsr	putsil
-eeeb : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
-ef04 : 20efea           		jsr	getHex
-ef07 : b0c6             		bcs	lExit1111		;abort on error
-ef09 : 8df917           		sta	IECFID
-AS65 Assembler for R6502 [1.42].                                     Page   50
----------------------------------- xKIM.asm ----------------------------------
-
+ef34 : 8c82df           		sty saveY
+ef37 : acfa17           		ldy NMIL
+ef3a : 8c83df           		sty saveNMIL
+ef3d : acfb17           		ldy NMIH
+ef40 : 8c84df           		sty saveNMIH
+ef43 : acfc17           		ldy RSTL
+ef46 : 8c85df           		sty saveRSTL
+ef49 : acfd17           		ldy RSTH
+ef4c : 8c86df           		sty saveRSTH
+ef4f : acfe17           		ldy IRQL
+ef52 : 8c87df           		sty saveIRQL
+ef55 : acff17           		ldy IRQH
+ef58 : 8c88df           		sty saveIRQH
+ef5b : ac82df           		ldy saveY
                         		
-ef0c : 4c00f0           		jmp IECLOD
-ef0f : 4c2fe1           		jmp	extKimLoop
+ef5e : a900             		lda #0
+ef60 : 8dfa17           		sta NMIL
+ef63 : 8dfc17           		sta RSTL
+ef66 : 8dfe17           		sta IRQL
+ef69 : a9e0             		lda #$E0
+ef6b : 8dfb17           		sta NMIH
+ef6e : 8dfd17           		sta RSTH
+ef71 : 8dff17           		sta IRQH
+                        		
+ef74 : 4c00f0           		jmp IECLOD
+                        		
+ef77 : 8c82df           		sty saveY
+ef7a : ac83df           		ldy saveNMIL
+ef7d : 8cfa17           		sty NMIL
+ef80 : ac84df           		ldy saveNMIH
+ef83 : 8cfb17           		sty NMIH
+ef86 : ac85df           		ldy saveRSTL
+ef89 : 8cfc17           		sty RSTL
+ef8c : ac86df           		ldy saveRSTH
+ef8f : 8cfd17           		sty RSTH
+ef92 : ac87df           		ldy saveIRQL
+ef95 : 8cfe17           		sty IRQL
+ef98 : ac88df           		ldy saveIRQH
+ef9b : 8cff17           		sty IRQH
+ef9e : ac82df           		ldy saveY
+                        		
+efa1 : 4c2fe1           		jmp	extKimLoop
                         
                         ;
                         ;=====================================================
                         ; These are the 6502 vectors.  On the Corsham
                         ; Technologies RAM/ROM board the user can select
+AS65 Assembler for R6502 [1.42].                                     Page   51
+---------------------------------- xKIM.asm ----------------------------------
+
                         ; whether or not to use these based on a switch
                         ; setting on the board.
                         ;
