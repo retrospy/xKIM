@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2638 lines read, no errors in pass 1.
+2664 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -229,6 +229,13 @@ ffff =                  SHOW_RTC	equ	true
 f148 =                  IECSAV		equ $F148
 f000 =                  IECLOD		equ $F000
                         ;
+17fa =                  NMIL		equ $17FA
+17fb =                  NMIH		equ $17FB
+17fc =                  RSTL		equ $17FC
+17fd =                  RSTH		equ $17FD
+17fe =                  IRQL		equ $17FE
+17ff =                  IRQH		equ $17FF
+                        ;
                         ;=====================================================
                         ; I assume the RAM goes from 2000 to DFFF, so carve ou
                         ; a bit for use by the monitor.
@@ -251,6 +258,9 @@ df82 =                  saveY		ds	1
                         ; character.  Used for doing disk/console input.
                         ;
 df83 =                  inputVector	ds	2
+AS65 Assembler for R6502 [1.42].                                     Page    5
+---------------------------------- xKIM.asm ----------------------------------
+
                         ;
                         ; Same thing for output.
                         ;
@@ -258,9 +268,6 @@ df85 =                  outputVector	ds	2
                         ;
 df87 =                  filename	ds	FILENAME_SIZE+1
 df94 =                  buffer		ds	BUFFER_SIZE
-AS65 Assembler for R6502 [1.42].                                     Page    5
----------------------------------- xKIM.asm ----------------------------------
-
 dfd4 =                  diskBufOffset	ds	1
 dfd5 =                  diskBufLength	ds	1
                         ;
@@ -316,13 +323,16 @@ dffc =                  ExtensionAddr	ds	2
                         ; okay to load before the address and then adjust
                         ; this down to keep others from stomping on your
                         ; extention.
+AS65 Assembler for R6502 [1.42].                                     Page    6
+---------------------------------- xKIM.asm ----------------------------------
+
                         ;
                         ; If your program modifies this value, it needs to
                         ; set it back before terminating.
                         ;
 dffe =                  HighestAddress	ds	2
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page    6
+AS65 Assembler for R6502 [1.42].                                     Page    7
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -387,7 +397,7 @@ e057 : 4c9fed           		jmp	DiskWrite
                         ; releases so none of these functions nor data should
                         ; be directly accessed by user programs!!!
                         ;=====================================================
-AS65 Assembler for R6502 [1.42].                                     Page    7
+AS65 Assembler for R6502 [1.42].                                     Page    8
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -399,7 +409,7 @@ e05b : 60               		rts
                         ;
 e05c : 00               defaultExt	db	0
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page    8
+AS65 Assembler for R6502 [1.42].                                     Page    9
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -464,7 +474,7 @@ e0a4 : 457874656e6465.. 		db	"Extended KIM Monitor v"
 e0ba : 312e3920         		db	VERSION+'0','.',REVISION+'0',' '
                         	if	BETA_VER
                         		db	"BETA "
-AS65 Assembler for R6502 [1.42].                                     Page    9
+AS65 Assembler for R6502 [1.42].                                     Page   10
 ---------------------------------- xKIM.asm ----------------------------------
 
                         		db	BETA_VER+'0'
@@ -529,7 +539,7 @@ e15f : 20c0ea           		jsr	putsil
 e162 : 202d204875683f00 		db	" - Huh?",0
 e16a : 4c2fe1           cmdFound	jmp	extKimLoop
                         ;
-AS65 Assembler for R6502 [1.42].                                     Page   10
+AS65 Assembler for R6502 [1.42].                                     Page   11
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -594,7 +604,7 @@ e1a5 : 04e8             		dw	saveHex
 e1a7 : 0be3             		dw	sDesc
                         ;
 e1a9 : 54               		db	'T'	;type a file on SD
-AS65 Assembler for R6502 [1.42].                                     Page   11
+AS65 Assembler for R6502 [1.42].                                     Page   12
 ---------------------------------- xKIM.asm ----------------------------------
 
 e1aa : a9e9             		dw	typeFile
@@ -609,7 +619,7 @@ e1b4 : 70ee             		dw	saveIEC
 e1b6 : 4ae3             		dw	yDesc
                         ;
 e1b8 : 5a               		db	'Z'	;load memory from IEC
-e1b9 : b9ee             		dw	loadIEC
+e1b9 : d2ee             		dw	loadIEC
 e1bb : 6be3             		dw	zDesc
                         ;
 e1bd : 21               		db	'!'	;do cold restart
@@ -659,7 +669,7 @@ e3c7 : a900             		lda	#reentry&$0ff
 e3c9 : 85fa             		sta	POINTL	;point back to start...
 e3cb : a9e0             		lda	#reentry/256
 e3cd : 85fb             		sta	POINTH	;...of this code
-AS65 Assembler for R6502 [1.42].                                     Page   12
+AS65 Assembler for R6502 [1.42].                                     Page   13
 ---------------------------------- xKIM.asm ----------------------------------
 
 e3cf : 4caf1d           		jmp	SHOW1	;return to KIM
@@ -724,7 +734,7 @@ e43c : 4c2fe1           cmdRet2		jmp	extKimLoop
                         ;=====================================================
                         ; This subroutine does a hex dump from the address in
                         ; SAL/H to EAL/H.
-AS65 Assembler for R6502 [1.42].                                     Page   13
+AS65 Assembler for R6502 [1.42].                                     Page   14
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;
@@ -789,7 +799,7 @@ e492 : 901a             		bcc	hexlntst
                         ;
 e494 : 2cf917           		bit	ID
 e497 : 3022             		bmi	hexdone
-AS65 Assembler for R6502 [1.42].                                     Page   14
+AS65 Assembler for R6502 [1.42].                                     Page   15
 ---------------------------------- xKIM.asm ----------------------------------
 
 e499 : ca               		dex
@@ -854,7 +864,7 @@ e4f6 : 8de717           		sta	pattern		;..pattern once
                         ;
 e4f9 : adf517           memTestMain	lda	SAL	;reset pointer to start
 e4fc : 85fa             		sta	POINTL
-AS65 Assembler for R6502 [1.42].                                     Page   15
+AS65 Assembler for R6502 [1.42].                                     Page   16
 ---------------------------------- xKIM.asm ----------------------------------
 
 e4fe : adf617           		lda	SAH
@@ -919,7 +929,7 @@ e54c : a901             		lda	#PATTERN_0
 e54e : d005             		bne	memTest4
                         ;
                         ; Rotate pattern left one bit
-AS65 Assembler for R6502 [1.42].                                     Page   16
+AS65 Assembler for R6502 [1.42].                                     Page   17
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;
@@ -984,7 +994,7 @@ e5c2 : 2027eb           		jsr	getStartAddr
 e5c5 : b0f5             		bcs	cmdRet4
 e5c7 : adf517           		lda	SAL		;move address into...
 e5ca : 85fa             		sta	POINTL		;...POINT
-AS65 Assembler for R6502 [1.42].                                     Page   17
+AS65 Assembler for R6502 [1.42].                                     Page   18
 ---------------------------------- xKIM.asm ----------------------------------
 
 e5cc : adf617           		lda	SAH
@@ -1049,7 +1059,7 @@ e61a : 656c6174697665.. 		db	"elative offset to: ",0
 e62e : 2039eb           		jsr	getEndAddr
 e631 : b0a7             		bcs	doEdit		;bad input
                         ;
-AS65 Assembler for R6502 [1.42].                                     Page   18
+AS65 Assembler for R6502 [1.42].                                     Page   19
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ; Need to load POINTL/POINTH into SAL/SAH and then
@@ -1114,7 +1124,7 @@ e6c6 : 4c2fe1           lExit11		jmp	extKimLoop
                         ; This subroutine loads a hex file from the SD.  On
                         ; entry the pointer to the filename is in X (MSB) and
                         ; Y (LSB).
-AS65 Assembler for R6502 [1.42].                                     Page   19
+AS65 Assembler for R6502 [1.42].                                     Page   20
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;
@@ -1179,7 +1189,7 @@ e75e : 85fa             		sta	POINTL
 e760 : 2033e9           		jsr	updateCrc
 e763 : 20efea           		jsr	getHex		;get the record type
 e766 : b041             		bcs	loadAbortF
-AS65 Assembler for R6502 [1.42].                                     Page   20
+AS65 Assembler for R6502 [1.42].                                     Page   21
 ---------------------------------- xKIM.asm ----------------------------------
 
 e768 : 2033e9           		jsr	updateCrc
@@ -1244,7 +1254,7 @@ e7b3 : d0c0             		bne	loadAbort
 e7b5 : 20efea           loadEof		jsr	getHex		;get checksum
 e7b8 : 20e6eb           		jsr	setInputConsole	;reset input vector
 e7bb : 20c0ea           		jsr	putsil
-AS65 Assembler for R6502 [1.42].                                     Page   21
+AS65 Assembler for R6502 [1.42].                                     Page   22
 ---------------------------------- xKIM.asm ----------------------------------
 
 e7be : 0d0a             		db	CR,LF
@@ -1309,7 +1319,7 @@ e80e : 456e7465722066.. 		db	"Enter filename, or Enter to "
 e82a : 646973706c6179.. 		db	"display to console: ",0
                         ;
 e83f : 208eeb           		jsr	getFileName	;get filename
-AS65 Assembler for R6502 [1.42].                                     Page   22
+AS65 Assembler for R6502 [1.42].                                     Page   23
 ---------------------------------- xKIM.asm ----------------------------------
 
 e842 : ad87df           		lda	filename	;null?
@@ -1374,7 +1384,7 @@ e891 : a93a             		lda	#':'
 e893 : 201eec           		jsr	redirectedOutch
 e896 : a900             		lda	#0
 e898 : 2004ec           		jsr	HexToOutput
-AS65 Assembler for R6502 [1.42].                                     Page   23
+AS65 Assembler for R6502 [1.42].                                     Page   24
 ---------------------------------- xKIM.asm ----------------------------------
 
 e89b : 2004ec           		jsr	HexToOutput
@@ -1439,7 +1449,7 @@ e8ff : ade717           		lda	CHKL
 e902 : 49ff             		eor	#$ff	;one's complement
 e904 : 18               		clc
 e905 : 6901             		adc	#1	;two's complement
-AS65 Assembler for R6502 [1.42].                                     Page   24
+AS65 Assembler for R6502 [1.42].                                     Page   25
 ---------------------------------- xKIM.asm ----------------------------------
 
 e907 : 2004ec           		jsr	HexToOutput
@@ -1504,7 +1514,7 @@ e951 : 696e672e2e2e2000 		db	"ing... ",0
 e959 : 20eeec           		jsr	DiskPing
 e95c : 20c0ea           		jsr	putsil
 e95f : 7375636365737321 		db	"success!"
-AS65 Assembler for R6502 [1.42].                                     Page   25
+AS65 Assembler for R6502 [1.42].                                     Page   26
 ---------------------------------- xKIM.asm ----------------------------------
 
 e967 : 0d0a00           		db	CR,LF,0
@@ -1569,7 +1579,7 @@ e9f5 : 4cede9           		jmp	typeFileLoop
 e9f8 : 20d6ed           typeEof		jsr	DiskClose
 e9fb : 4c2fe1           		jmp	extKimLoop
                         ;
-AS65 Assembler for R6502 [1.42].                                     Page   26
+AS65 Assembler for R6502 [1.42].                                     Page   27
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -1620,7 +1630,7 @@ ea6b : 4c2fe1           		jmp	extKimLoop
                         ; Add new commands here...
                         ;
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   27
+AS65 Assembler for R6502 [1.42].                                     Page   28
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;
@@ -1685,7 +1695,7 @@ eaa3 : 98               		tya
 eaa4 : 48               		pha
 eaa5 : 209e1e           		jsr	OUTSP
 eaa8 : 209e1e           		jsr	OUTSP
-AS65 Assembler for R6502 [1.42].                                     Page   28
+AS65 Assembler for R6502 [1.42].                                     Page   29
 ---------------------------------- xKIM.asm ----------------------------------
 
 eaab : 20d4ea           		jsr	puts	;print description
@@ -1750,7 +1760,7 @@ eaf2 : b01e             		bcs	getNibBad
 eaf4 : 0a               		asl	a
 eaf5 : 0a               		asl	a
 eaf6 : 0a               		asl	a
-AS65 Assembler for R6502 [1.42].                                     Page   29
+AS65 Assembler for R6502 [1.42].                                     Page   30
 ---------------------------------- xKIM.asm ----------------------------------
 
 eaf7 : 0a               		asl	a
@@ -1815,7 +1825,7 @@ eb4a : 60               		rts
 eb4b : 20bdea           getAddrRange    jsr	space
 eb4e : 2027eb           		jsr	getStartAddr
 eb51 : b0e5             		bcs	getDone
-AS65 Assembler for R6502 [1.42].                                     Page   30
+AS65 Assembler for R6502 [1.42].                                     Page   31
 ---------------------------------- xKIM.asm ----------------------------------
 
 eb53 : a92d             		lda	#'-'
@@ -1880,7 +1890,7 @@ eb8d : 60               		rts
                         ; every key prevents this from being too fancy, but it
                         ; good enough.
                         ;
-AS65 Assembler for R6502 [1.42].                                     Page   31
+AS65 Assembler for R6502 [1.42].                                     Page   32
 ---------------------------------- xKIM.asm ----------------------------------
 
 eb8e : a200             getFileName	ldx	#0
@@ -1941,7 +1951,7 @@ ebde : 8dd5df           		sta	diskBufLength
 ebe1 : 38               		sec
 ebe2 : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   32
+AS65 Assembler for R6502 [1.42].                                     Page   33
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;
@@ -2006,7 +2016,7 @@ ec1c : 6930             hexta1		adc	#'0'	;then fall into...
                         ; This is a helper function used for redirected I/O.
                         ; It simply does a jump through the output vector
                         ; pointer to send the character in A to the proper
-AS65 Assembler for R6502 [1.42].                                     Page   33
+AS65 Assembler for R6502 [1.42].                                     Page   34
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ; device.
@@ -2071,7 +2081,7 @@ ec57 : a094             		ldy	#buffer&$ff
 ec59 : 209fed           		jsr	DiskWrite
                         ;
 ec5c : a200             		ldx	#0		;reset index
-AS65 Assembler for R6502 [1.42].                                     Page   34
+AS65 Assembler for R6502 [1.42].                                     Page   35
 ---------------------------------- xKIM.asm ----------------------------------
 
 ec5e : 68               		pla
@@ -2121,7 +2131,7 @@ ec66 : 60               		rts
 1703 =                  PIADDRB		equ	PIABASE+3	;data dir reg B
                         		code
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   35
+AS65 Assembler for R6502 [1.42].                                     Page   36
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;*****************************************************
@@ -2152,7 +2162,7 @@ ec7b : 0901             		ora	#DIRECTION
 ec7d : 8d0217           		sta	PIAREGB
 ec80 : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   36
+AS65 Assembler for R6502 [1.42].                                     Page   37
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;*****************************************************
@@ -2170,7 +2180,7 @@ ec8b : 0901             		ora	#DIRECTION
 ec8d : 8d0217           		sta	PIAREGB
 ec90 : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   37
+AS65 Assembler for R6502 [1.42].                                     Page   38
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;*****************************************************
@@ -2187,7 +2197,7 @@ ec99 : 29f8             		and	#~(DIRECTION | PSTROBE | ACK)
 ec9b : 8d0217           		sta	PIAREGB
 ec9e : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   38
+AS65 Assembler for R6502 [1.42].                                     Page   39
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;*****************************************************
@@ -2244,7 +2254,7 @@ ecc5 : 2904             		and	#ACK
 ecc7 : d0f9             		bne	Parwl44
 ecc9 : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   39
+AS65 Assembler for R6502 [1.42].                                     Page   40
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;*****************************************************
@@ -2309,7 +2319,7 @@ eced : 60               		rts
                         ;=====================================================
                         ; Commands from host to Arduino
                         ;
-AS65 Assembler for R6502 [1.42].                                     Page   40
+AS65 Assembler for R6502 [1.42].                                     Page   41
 ---------------------------------- xKIM.asm ----------------------------------
 
 0001 =                  PC_GET_VERSION	equ	$01
@@ -2374,7 +2384,7 @@ eced : 60               		rts
                         		include	"diskfunc.asm"
                         		list
                         ;=====================================================
-AS65 Assembler for R6502 [1.42].                                     Page   41
+AS65 Assembler for R6502 [1.42].                                     Page   42
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ; This is a collection of functions for performing
@@ -2414,7 +2424,7 @@ ecfc : 2081ec           DiskRetGood	jsr	xParSetWrite
 ecff : 18               		clc			;assume it's good
 ed00 : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   42
+AS65 Assembler for R6502 [1.42].                                     Page   43
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -2432,7 +2442,7 @@ ed06 : 209fec           		jsr	xParWriteByte
 ed09 : 18               		clc		;assume it works
 ed0a : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   43
+AS65 Assembler for R6502 [1.42].                                     Page   44
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -2476,7 +2486,7 @@ ed37 : 2081ec           DDNErr		jsr	xParSetWrite
 ed3a : 38               		sec
 ed3b : 60               		rts
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   44
+AS65 Assembler for R6502 [1.42].                                     Page   45
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;=====================================================
@@ -2541,7 +2551,7 @@ ed71 : 48               		pha
 ed72 : a917             		lda	#PC_READ_BYTES
 ed74 : 209fec           		jsr	xParWriteByte	;command
 ed77 : 68               		pla		;number of bytes to get
-AS65 Assembler for R6502 [1.42].                                     Page   45
+AS65 Assembler for R6502 [1.42].                                     Page   46
 ---------------------------------- xKIM.asm ----------------------------------
 
 ed78 : 209fec           		jsr	xParWriteByte
@@ -2606,7 +2616,7 @@ edd0 : 60               		rts
                         ;
 edd1 : 2081ec           DiskOk1		jsr	xParSetWrite
 edd4 : 18               		clc
-AS65 Assembler for R6502 [1.42].                                     Page   46
+AS65 Assembler for R6502 [1.42].                                     Page   47
 ---------------------------------- xKIM.asm ----------------------------------
 
 edd5 : 60               		rts
@@ -2671,7 +2681,7 @@ ee23 : ad97df           		lda	year_low
 ee26 : 2054ee           		jsr	outdec
                         ;
                         ; Space over, then do the time
-AS65 Assembler for R6502 [1.42].                                     Page   47
+AS65 Assembler for R6502 [1.42].                                     Page   48
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;
@@ -2721,7 +2731,7 @@ ee6c : 60               		rts
                         		include "mytb.asm"
                         	endif
                         		page
-AS65 Assembler for R6502 [1.42].                                     Page   48
+AS65 Assembler for R6502 [1.42].                                     Page   49
 ---------------------------------- xKIM.asm ----------------------------------
 
                         		
@@ -2736,40 +2746,62 @@ ee73 : b0f8             			bcs	lExit111		;abort on error
                         ;
                         ; Get the file id to save to
                         ;
-ee75 : 20c0ea           		jsr	putsil
-ee78 : 0d0a             		db	CR,LF
-ee7a : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
-ee93 : 20efea           		jsr	getHex
-ee96 : b0d5             		bcs	lExit111		;abort on error
-ee98 : 8df917           		sta	IECFID
+ee75 : a900             		lda #0
+ee77 : 8dfa17           		sta NMIL
+ee7a : 8dfc17           		sta RSTL
+ee7d : 8dfe17           		sta IRQL
+ee80 : a9e0             		lda #$E0
+ee82 : 8dfb17           		sta NMIH
+ee85 : 8dfd17           		sta RSTH
+ee88 : 8dff17           		sta IRQH
                         		
-ee9b : adf617           		lda SAH
-ee9e : 8df617           		sta IECSAH
-eea1 : adf517           		lda SAL
-eea4 : 8df517           		sta IECSAL
-eea7 : adf817           		lda EAH
-eeaa : 8df817           		sta IECEAH
-eead : adf717           		lda EAL
-eeb0 : 8df717           		sta IECEAL
+ee8b : 20c0ea           		jsr	putsil
+ee8e : 0d0a             		db	CR,LF
+ee90 : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
+eea9 : 20efea           		jsr	getHex
+eeac : b0bf             		bcs	lExit111		;abort on error
+eeae : 8df917           		sta	IECFID
                         		
-eeb3 : 4c48f1           		jmp IECSAV
-eeb6 : 4c2fe1           		jmp	extKimLoop
+eeb1 : adf617           		lda SAH
+eeb4 : 8df617           		sta IECSAH
+eeb7 : adf517           		lda SAL
+eeba : 8df517           		sta IECSAL
+eebd : adf817           		lda EAH
+eec0 : 8df817           		sta IECEAH
+eec3 : adf717           		lda EAL
+eec6 : 8df717           		sta IECEAL
+                        		
+eec9 : 4c48f1           		jmp IECSAV
+eecc : 4c2fe1           		jmp	extKimLoop
                         ;
                         ;=====================================================
                         ; Handles the command to load a region of memory from
                         ; an IEC device.
                         ;
-eeb9 :                  loadIEC		
+eecf : 4c2fe1           lExit1111		jmp	extKimLoop
+eed2 :                  loadIEC		
                         ; Get the file id to save to
                         ;
-eeb9 : 20c0ea           		jsr	putsil
-eebc : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
-eed5 : 20efea           		jsr	getHex
-eed8 : b093             		bcs	lExit111		;abort on error
-eeda : 8df917           		sta	IECFID
+eed2 : a900             		lda #0
+eed4 : 8dfa17           		sta NMIL
+eed7 : 8dfc17           		sta RSTL
+eeda : 8dfe17           		sta IRQL
+eedd : a9e0             		lda #$E0
+eedf : 8dfb17           		sta NMIH
+eee2 : 8dfd17           		sta RSTH
+eee5 : 8dff17           		sta IRQH
                         		
-eedd : 4c00f0           		jmp IECLOD
-eee0 : 4c2fe1           		jmp	extKimLoop
+eee8 : 20c0ea           		jsr	putsil
+eeeb : 456e7465722066.. 		db	"Enter file ID ($01-$FE):",0
+ef04 : 20efea           		jsr	getHex
+ef07 : b0c6             		bcs	lExit1111		;abort on error
+ef09 : 8df917           		sta	IECFID
+AS65 Assembler for R6502 [1.42].                                     Page   50
+---------------------------------- xKIM.asm ----------------------------------
+
+                        		
+ef0c : 4c00f0           		jmp IECLOD
+ef0f : 4c2fe1           		jmp	extKimLoop
                         
                         ;
                         ;=====================================================
@@ -2786,9 +2818,6 @@ fffe : 1f1c             IRQ		dw	IRQT	;in KIM
                         		end
                         
                         
-AS65 Assembler for R6502 [1.42].                                     Page   49
----------------------------------- xKIM.asm ----------------------------------
-
 No errors in pass 2.
 Wrote binary from address $e000 through $ffff.
 Total size 8192 bytes.

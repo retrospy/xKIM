@@ -216,6 +216,13 @@ IECFID		equ $17F9
 IECSAV		equ $F148
 IECLOD		equ $F000
 ;
+NMIL		equ $17FA
+NMIH		equ $17FB
+RSTL		equ $17FC
+RSTH		equ $17FD
+IRQL		equ $17FE
+IRQH		equ $17FF
+;
 ;=====================================================
 ; I assume the RAM goes from 2000 to DFFF, so carve out
 ; a bit for use by the monitor.
@@ -2089,6 +2096,15 @@ saveIEC		jsr	getAddrRange	;get range to dump
 ;
 ; Get the file id to save to
 ;
+		lda #0
+		sta NMIL
+		sta RSTL
+		sta IRQL
+		lda #$E0
+		sta NMIH
+		sta RSTH
+		sta IRQH
+		
 		jsr	putsil
 		db	CR,LF
 		db	"Enter file ID ($01-$FE):",0
@@ -2112,13 +2128,23 @@ saveIEC		jsr	getAddrRange	;get range to dump
 ; Handles the command to load a region of memory from
 ; an IEC device.
 ;
+lExit1111		jmp	extKimLoop
 loadIEC		
 ; Get the file id to save to
 ;
+		lda #0
+		sta NMIL
+		sta RSTL
+		sta IRQL
+		lda #$E0
+		sta NMIH
+		sta RSTH
+		sta IRQH
+		
 		jsr	putsil
 		db	"Enter file ID ($01-$FE):",0
 		jsr	getHex
-		bcs	lExit111		;abort on error
+		bcs	lExit1111		;abort on error
 		sta	IECFID
 		
 		jmp IECLOD
