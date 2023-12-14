@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2713 lines read, no errors in pass 1.
+2710 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -2795,11 +2795,11 @@ eee3 : 8df917           		sta	IECFID
                         		
 eee6 : 2008ef           		jsr savevec
                         		
-eee9 : a9f7             		lda #$F7
+eee9 : a900             		lda #$00
 eeeb : 8dfa17           		sta NMIL
 eeee : 8dfc17           		sta RSTL
 eef1 : 8dfe17           		sta IRQL
-eef4 : a9ff             		lda #$FF
+eef4 : a9e0             		lda #$E0
 eef6 : 8dfb17           		sta NMIH
 eef9 : 8dfd17           		sta RSTH
 eefc : 8dff17           		sta IRQH
@@ -2809,7 +2809,7 @@ eefc : 8dff17           		sta IRQH
 
 eeff : 2000f0           		jsr IECLOD
                         
-ef02 : 2033ef           lodret	jsr loadvec
+ef02 : 2033ef           		jsr loadvec
                         		
 ef05 : 4c2fe1           		jmp	extKimLoop
                         
@@ -2848,9 +2848,6 @@ ef57 : 8cff17           		sty IRQH
 ef5a : ac82df           		ldy saveY
                         		
 ef5d : 60               		rts
-                        
-fff7 =                  		org $fff7
-fff7 : 4c02ef           		jmp lodret
                         
                         ;
                         ;=====================================================

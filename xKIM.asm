@@ -2145,18 +2145,18 @@ loadIEC
 		
 		jsr savevec
 		
-		lda #$F7
+		lda #$00
 		sta NMIL
 		sta RSTL
 		sta IRQL
-		lda #$FF
+		lda #$E0
 		sta NMIH
 		sta RSTH
 		sta IRQH
 		
 		jsr IECLOD
 
-lodret	jsr loadvec
+		jsr loadvec
 		
 		jmp	extKimLoop
 
@@ -2195,9 +2195,6 @@ loadvec
 		ldy saveY
 		
 		rts
-
-		org $fff7
-		jmp lodret
 
 ;
 ;=====================================================
