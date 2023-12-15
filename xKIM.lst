@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].                                     Page    1
 ---------------------------------- xKIM.asm ----------------------------------
 
-2737 lines read, no errors in pass 1.
+2738 lines read, no errors in pass 1.
                         ;*****************************************************
                         ; Extended KIM monitor, written 2015 by Bob Applegate
                         ; K2UT - bob@corshamtech.com
@@ -147,7 +147,7 @@ ffff =                  SHOW_RTC	equ	true
                         ; Flag value to detect we need to restore interrupt ve
                         ;
 00ab =                  VEC_FLAG_1 equ $AB
-00ab =                  VEC_FLAG_2 equ $AB
+00cd =                  VEC_FLAG_2 equ $CD
                         ;
                         ;=====================================================
                         ; This macro is used to verify that the current addres
@@ -333,6 +333,11 @@ dffa =                  ColdFlag	ds	2
                         ;
 dffc =                  ExtensionAddr	ds	2
                         ;
+                        ; VecFlag is used to determine if we need to restore
+                        ; interrupt vector addresses
+                        ;
+dffe =                  VecFlag	ds	2
+                        ;
                         ; This is the higest location in RAM usable by user
                         ; programs.  Nobody should go past this address.  If
                         ; you are writing extentions to the monitor, it's
@@ -343,16 +348,12 @@ dffc =                  ExtensionAddr	ds	2
                         ; If your program modifies this value, it needs to
                         ; set it back before terminating.
                         ;
-dffe =                  HighestAddress	ds	2
+e000 =                  HighestAddress	ds	2
                         		page
 AS65 Assembler for R6502 [1.42].                                     Page    7
 ---------------------------------- xKIM.asm ----------------------------------
 
                         ;
-                        ; VecFlag is used to determine if we need to restore
-                        ; interrupt vector addresses
-                        ;
-e000 =                  VecFlag	ds	2
                         ;=====================================================
                         ; Code starts at E000 and goes until FFFF, except for
                         ; the 6502 vectors at the end of memory.
@@ -410,13 +411,13 @@ e057 : 4cb0ed           		jmp	DiskWrite
                         
                         ;
                         ;=====================================================
-AS65 Assembler for R6502 [1.42].                                     Page    8
----------------------------------- xKIM.asm ----------------------------------
-
                         ;=====================================================
                         ; Anything past this point can be moved in future
                         ; releases so none of these functions nor data should
                         ; be directly accessed by user programs!!!
+AS65 Assembler for R6502 [1.42].                                     Page    8
+---------------------------------- xKIM.asm ----------------------------------
+
                         ;=====================================================
                         ;=====================================================
                         ; This is a dummy function for unimplemented functions
@@ -453,11 +454,11 @@ e074 : adfbdf           		lda	ColdFlag+1
 e077 : c962             		cmp	#COLD_FLAG_2
 e079 : d014             		bne	coldStart
                         		
-e07b : ad00e0           		lda	VecFlag
+e07b : adfedf           		lda	VecFlag
 e07e : c9ab             		cmp	#VEC_FLAG_1
 e080 : d00a             		bne warmboot
-e082 : ad01e0           		lda	VecFlag+1
-e085 : c9ab             		cmp	#VEC_FLAG_2
+e082 : adffdf           		lda	VecFlag+1
+e085 : c9cd             		cmp	#VEC_FLAG_2
 e087 : d003             		bne	warmboot
                         		
 e089 : 204eef           		jsr loadvec
@@ -482,9 +483,9 @@ e0a1 : 8dfddf           		sta	ExtensionAddr+1
                         ; Set HighestAddress to just before our RAM area.
                         ;
 e0a4 : a97f             		lda	#(LowestAddress-1)&$ff
-e0a6 : 8dfedf           		sta	HighestAddress
+e0a6 : 8d00e0           		sta	HighestAddress
 e0a9 : a9df             		lda	#(LowestAddress-1)/256
-e0ab : 8dffdf           		sta	HighestAddress+1
+e0ab : 8d01e0           		sta	HighestAddress+1
                         	if	SD_ONLY_COLD
                         ;
                         ; Initialize the interface to the SD card.  There seem
@@ -2850,9 +2851,9 @@ ef3a : acff17           		ldy IRQH
 ef3d : 8c88df           		sty saveIRQH
                         		
 ef40 : a0ab             		ldy	#VEC_FLAG_1
-ef42 : 8c00e0           		sty	VecFlag
-ef45 : a0ab             		ldy	#VEC_FLAG_2
-ef47 : 8c01e0           		sty	VecFlag+1
+ef42 : 8cfedf           		sty	VecFlag
+ef45 : a0cd             		ldy	#VEC_FLAG_2
+ef47 : 8cffdf           		sty	VecFlag+1
                         		
 ef4a : ac82df           		ldy saveY
                         		

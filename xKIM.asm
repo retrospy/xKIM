@@ -137,7 +137,7 @@ COLD_FLAG_2	equ	$62
 ; Flag value to detect we need to restore interrupt vectors
 ;
 VEC_FLAG_1 equ $AB
-VEC_FLAG_2 equ $AB
+VEC_FLAG_2 equ $CD
 ;
 ;=====================================================
 ; This macro is used to verify that the current address
@@ -314,6 +314,11 @@ ColdFlag	ds	2
 ;
 ExtensionAddr	ds	2
 ;
+; VecFlag is used to determine if we need to restore
+; interrupt vector addresses
+;
+VecFlag	ds	2
+;
 ; This is the higest location in RAM usable by user
 ; programs.  Nobody should go past this address.  If
 ; you are writing extentions to the monitor, it's
@@ -327,10 +332,6 @@ ExtensionAddr	ds	2
 HighestAddress	ds	2
 		page
 ;
-; VecFlag is used to determine if we need to restore
-; interrupt vector addresses
-;
-VecFlag	ds	2
 ;=====================================================
 ; Code starts at E000 and goes until FFFF, except for
 ; the 6502 vectors at the end of memory.
